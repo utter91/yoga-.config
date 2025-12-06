@@ -1,0 +1,57 @@
+#!/usr/bin/bash
+
+SLEEP_STATE_FILE="/tmp/custom_sleep_active"
+
+echo "power on monitor(s)"
+
+sleep 0.1
+
+hyprctl dispatch dpms on && brightnessctl -r
+
+# Wait for swaylock to exit before resuming processes
+sleep 0.5
+
+#SELF_PID=$$
+#EXCLUDE="zsh|systemd|hyprland|acpid|swaylock|swayidle|dbus-daemon|nvim|yazi|ghostty"
+#
+#pgrep -u "$USER" -x | while read -r pid; do
+#	pname=$(ps -p "$pid" -o comm=)
+#	if [[ "$pid" -ne "$SELF_PID" ]] && ! [[ $pname =~ ^($EXCLUDE)$ ]]; then
+#		kill -CONT "$pid"
+#	fi
+#done
+
+# Restore wireless states (no sudo needed)
+WIFI_STATE_FILE="/tmp/wifi_state"
+BT_STATE_FILE="/tmp/bluetooth_state"
+KBD_STATE_FILE="/tmp/kbd_backlight_state"
+
+echo "före statefile control"
+
+if [[ -f "$WIFI_STATE_FILE" ]]; then
+	if [[ "$(cat "$WIFI_STATE_FILE")" == "enabled" ]]; then
+		rfkill unblock wifi
+	fi
+	rm "$WIFI_STATE_FILE"
+fi
+
+if [[ -f "$BT_STATE_FILE" ]]; then
+	if [[ "$(cat "$BT_STATE_FILE")" == "enabled" ]]; then
+		rfkill unblock bluetooth
+	fi
+	rm "$BT_STATE_FILE"
+fi
+
+
+echo "restore keyboard backlight"
+
+# Restore keyboard backlight
+
+brightnessctl -d platform::kbd_backlight s 1
+
+echo "före remove sleep state file"
+
+# Remove sleep state file
+if [[ -f "$SLEEP_STATE_FILE" ]]; then
+	rm "$SLEEP_STATE_FILE"
+fi

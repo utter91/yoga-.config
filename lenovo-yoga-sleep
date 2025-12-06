@@ -1,0 +1,61 @@
+#!/usr/bin/bash
+
+SLEEP_STATE_FILE="/tmp/custom_sleep_active"
+
+# Check if already in custom sleep state
+if [[ -f "$SLEEP_STATE_FILE" ]]; then
+	exit 0
+fi
+
+# Create sleep state file
+echo "$(date)" >"$SLEEP_STATE_FILE"
+
+
+
+#pkill swaylock
+#$HOME/.local/bin/swaylock-shuffle &
+
+sleep 0.5
+
+# Save current wireless states before turning them off
+WIFI_STATE_FILE="/tmp/wifi_state"
+BT_STATE_FILE="/tmp/bluetooth_state"
+KBD_STATE_FILE="/tmp/kbd_backlight_state"
+
+# Check and save WiFi state (no sudo needed)
+if rfkill list wifi | grep -q "Soft blocked: no"; then
+	echo "enabled" >"$WIFI_STATE_FILE"
+else
+	echo "disabled" >"$WIFI_STATE_FILE"
+fi
+
+# Check and save Bluetooth state (no sudo needed)
+if rfkill list bluetooth | grep -q "Soft blocked: no"; then
+	echo "enabled" >"$BT_STATE_FILE"
+else
+	echo "disabled" >"$BT_STATE_FILE"
+fi
+
+# Turn off WiFi and Bluetooth (no sudo needed)
+rfkill block wifi
+rfkill block bluetooth
+
+echo "Power off monitor(s)"
+
+sleep 0.1
+
+hyprctl dispatch dpms off
+
+sleep 0.1
+
+brightnessctl -d platform::kbd_backlight s 0
+
+#SELF_PID=$$
+#EXCLUDE="zsh|hyprland|systemd|acpid|swayidle|dbus-daemon|nvim|yazi|ghostty"
+#
+#pgrep -u "$USER" -x | while read -r pid; do
+#	pname=$(ps -p "$pid" -o comm=)
+#	if [[ "$pid" -ne "$SELF_PID" ]] && ! [[ $pname =~ ^($EXCLUDE)$ ]]; then
+#		kill -STOP "$pid"
+#	fi
+#done
