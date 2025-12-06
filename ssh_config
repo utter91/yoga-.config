@@ -1,4 +1,4 @@
- Include drop-in configurations
+#Include drop-in configurations
 Include /etc/ssh/ssh_config.d/*.conf
 
 # This is the ssh client system-wide configuration file.  See
