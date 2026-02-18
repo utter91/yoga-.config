@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+IFACE="yoga-SE-327"
+
+cleanup() {
+  echo
+  echo "🔌 Disconnecting WireGuard ($IFACE)..."
+  sudo wg-quick down "$IFACE"
+}
+
+echo "🔐 Connecting WireGuard ($IFACE)..."
+sudo wg-quick up "$IFACE" || exit 1
+
+# Run cleanup on terminal close, Ctrl+C, or shell exit
+trap cleanup EXIT INT TERM
+
+echo "✅ WireGuard is up."
+echo "Close this terminal or press Ctrl+C to disconnect."
+echo
+
+# Keep the script running while terminal is open
+while true; do
+  sleep 60
+done
